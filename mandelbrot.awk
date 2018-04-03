@@ -7,7 +7,7 @@ function MyTime() {
   return($1)
 }
 
-function pixel(Zr, Zi, Im, Re, Iter,   a, b, n) {
+function Pixel(Zr, Zi, Im, Re, Iter,   a, b, n) {
   for (n=0; n<Iter; n++) {
     a = Zr*Zr
     b = Zi*Zi
@@ -34,8 +34,8 @@ function drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter,    x, y, Line
     for (x=0; x<XSize; x++) { # For each pixel on lines
       Zr = Re = MinRe + StepX * x
 
-      ColUp = (pixel(Zr, ZiUp, ImUp, Re, Iter)%8)+40 # Upper pixel color
-      ColDn = (pixel(Zr, ZiDn, ImDn, Re, Iter)%8)+30 # Lower pixel color
+      ColUp = (Pixel(Zr, ZiUp, ImUp, Re, Iter)%8)+40 # Upper pixel color
+      ColDn = (Pixel(Zr, ZiDn, ImDn, Re, Iter)%8)+30 # Lower pixel color
 
       # Are pixels different from last time
       if ( (PrevColUp != ColUp) || (PrevColDn != ColDn) ) {
@@ -54,15 +54,22 @@ function drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter,    x, y, Line
   printf("%s", Screen)
 }
 
-function profile(p) {
+function Profile(profile, pixel, iter, nframes, ratio) {
   # Set defaults for all profile
   pix       = "▄"
   Iter      = 32
   nrFrames  = 150
   MinIm = -2; MaxIm = 2
   MinRe = -2; MaxRe = 2
+  AspectWidth  = 4
+  AspectHeight = 3
 
-  switch(p) {
+  switch(profile) {
+    case 0:
+      Iter = 256
+      nrFrames = 1
+      break;
+
     case 1:
       nrFrames = 400
       MinIm = -2.000; MaxIm = 2.000
@@ -94,6 +101,24 @@ function profile(p) {
       MinRe = -3.781; MaxRe = 0.219
       break;
   }
+
+  if (pixel) pix = pixel
+  if (iter) Iter = iter
+  if (nframes) nrFrames  = nframes
+  if (ratio && match(ratio, /([[:digit:]]+):([[:digit:]]+)/, AspectRatio)) {
+    AspectWidth  = AspectRatio[1]?AspectRatio[1]:1
+    AspectHeight = AspectRatio[2]?AspectRatio[2]:1
+  }
+
+  # find best aspect ratio
+  if ((Width*AspectHeight) > (Height*(AspectWidth*2))) {
+    XSize = Height*(AspectWidth*2)/AspectHeight
+    YSize = Height-2
+  } else {
+    XSize = Width
+    YSize = Width*AspectHeight/(AspectWidth*2)-2
+  }
+
 }
 
 BEGIN {
@@ -105,17 +130,8 @@ BEGIN {
     Width = 80; Height = 24
   }
 
-  # find best 2:1 aspect ratio
-  if (Width > Height*2) {
-    XSize = Height*2
-    YSize = Height-2
-  } else {
-    XSize = Width
-    YSize = Width/2-2
-  }
-
   # select profile to show
-  profile(profl?profl:1)
+  Profile(profile?profile:0, pixel, iter, nframes, ratio)
 
   # reset fps counters
   FPS = "0.00"
