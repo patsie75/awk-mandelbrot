@@ -11,13 +11,13 @@ There are some other minor improvements like buffering the output screen to redu
 
 Example usage:
 Run a preset 'profile 1' animation
-`./mandelbrot.awk -v profile=1`
+```./mandelbrot.awk -v profile=1```
 
 Run preset profile 2 with 100 frames and an aspect ratio of 1:1 
-`./mandelbrot.awk -v profile=2 -v nframes=100 -v ratio=1:1`
+```./mandelbrot.awk -v profile=2 -v nframes=100 -v ratio=1:1```
 
 Draw a single frame with drawing distance of 256
-`./mandelbrot.awk -v nframes=1 -v iter=256`
+```./mandelbrot.awk -v nframes=1 -v iter=256```
 
 Here's a (static) picture of the result:
 ![Mandelbrot image](/mandelbrot.jpg)
