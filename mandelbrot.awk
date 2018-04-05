@@ -48,13 +48,14 @@ function drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter,    x, y, Line
       Line = Line pix
     }
     # Add line to screen buffer
-    Screen = Screen Line "\033[0m\n"
+    if (VSync) Screen = Screen Line "\033[0m\n"
+    else printf("%s\033[0m\n", Line)
   }
   # Print screen buffer
-  printf("%s", Screen)
+  if (VSync) printf("%s", Screen)
 }
 
-function Profile(profile, pixel, iter, nframes, ratio) {
+function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
   # Set defaults for all profile
   pix       = "▄"
   Iter      = 32
@@ -63,11 +64,14 @@ function Profile(profile, pixel, iter, nframes, ratio) {
   MinRe = -2; MaxRe = 2
   AspectWidth  = 4
   AspectHeight = 3
+  VSync     = 1
+  StatusBar = 1
 
   switch(profile) {
     case 0:
       Iter = 256
       nrFrames = 1
+      VSync = 0
       break;
 
     case 1:
@@ -104,6 +108,8 @@ function Profile(profile, pixel, iter, nframes, ratio) {
 
   if (pixel) pix = pixel
   if (iter) Iter = iter
+  if (vsync) VSync = vsync=="off"?0:1
+  if (statusbar) StatusBar = statusbar=="off"?0:1
   if (nframes) nrFrames  = nframes
   if (ratio && match(ratio, /([[:digit:]]+):([[:digit:]]+)/, AspectRatio)) {
     AspectWidth  = AspectRatio[1]?AspectRatio[1]:1
@@ -113,10 +119,10 @@ function Profile(profile, pixel, iter, nframes, ratio) {
   # find best aspect ratio
   if ((Width*AspectHeight) > (Height*(AspectWidth*2))) {
     XSize = Height*(AspectWidth*2)/AspectHeight
-    YSize = Height-2
+    YSize = Height-(StatusBar+1)
   } else {
     XSize = Width
-    YSize = Width*AspectHeight/(AspectWidth*2)-2
+    YSize = Width*AspectHeight/(AspectWidth*2)-(StatusBar+1)
   }
 
 }
@@ -131,7 +137,7 @@ BEGIN {
   }
 
   # select profile to show
-  Profile(profile?profile:0, pixel, iter, nframes, ratio)
+  Profile(profile?profile:0, pixel, iter, vsync, statusbar, nframes, ratio)
 
   # reset fps counters
   FPS = "0.00"
@@ -154,18 +160,21 @@ BEGIN {
     StepX = (MaxRe-MinRe)/XSize
     StepY = (MaxIm-MinIm)/YSize
 
-    # Draw FPS counter and new frame
-    #printf("\033[Hsize:%dx%d frame:%d/%d iter:%d %s   zmspd:%.6f winsz:%.6f\033[K\n", XSize, YSize, frame, nrFrames, Iter, FPS, ZoomSpeed, MaxIm-MinIm)
-    printf("\033[Hsize:%dx%d frame:%d/%d iter:%d %s\033[K\n", XSize, YSize, frame, nrFrames, Iter, FPS)
+    # Draw status bar and new frame
+    if (StatusBar == 1) printf("\033[Hsize:%dx%d frame:%d/%d iter:%d %s\033[K\n", XSize, YSize, frame, nrFrames, Iter, FPS)
+    else printf("\033[H")
+
     drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter)
 
     # If certain time has passed, calculate new FPS
-    FrameCnt++
-    TimeNow = MyTime()
-    if ( (TimeNow - TimeThen) > 1) {
-      FPS = sprintf("now:%.2ffps avg:%.2ffps", FrameCnt/(TimeNow-TimeThen), frame/(TimeNow-TimeStart))
-      TimeThen = TimeNow
-      FrameCnt = 0
+    if (StatusBar) {
+      FrameCnt++
+      TimeNow = MyTime()
+      if ( (TimeNow - TimeThen) > 1) {
+        FPS = sprintf("now:%.2ffps avg:%.2ffps", FrameCnt/(TimeNow-TimeThen), frame/(TimeNow-TimeStart))
+        TimeThen = TimeNow
+        FrameCnt = 0
+      }
     }
   }
 
