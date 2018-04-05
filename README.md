@@ -10,6 +10,9 @@ Last but not least I made the sizing somewhat more flexible, by auto-detecting t
 There are some other minor improvements like buffering the output screen to reduce flickering, having a status bar with FPS in the top line and having a variable drawing distance.
 
 Example usage:  
+Not all environments export the `COLUMNS` and `LINES` variables, so you may want to start off with:  
+`export COLUMNS LINES`
+
 Run a preset 'profile 1' animation  
 `./mandelbrot.awk -v profile=1`
 
