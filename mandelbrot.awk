@@ -104,12 +104,20 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
       MinIm = -2.000; MaxIm = 2.000
       MinRe = -3.781; MaxRe = 0.219
       break;
+
+    case 6:
+      nrFrames  = 400
+      AspectWidth  = 2
+      AspectHeight = 1
+      MinIm = -1.000; MaxIm = 1.000
+      MinRe = -3.781; MaxRe = 0.219
+      break;
   }
 
   if (pixel) pix = pixel
   if (iter) Iter = iter
-  if (vsync) VSync = vsync=="off"?0:1
-  if (statusbar) StatusBar = statusbar=="off"?0:1
+  if (vsync) VSync = (vsync in negative)?0:1
+  if (statusbar) StatusBar = (statusbar in negative)?0:1
   if (nframes) nrFrames  = nframes
   if (ratio && match(ratio, /([[:digit:]]+):([[:digit:]]+)/, AspectRatio)) {
     AspectWidth  = AspectRatio[1]?AspectRatio[1]:1
@@ -128,6 +136,10 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
 }
 
 BEGIN {
+  negative["off"] = 1
+  negative["false"] = 1
+  negative["no"] = 1
+
   # get width and height of console
   if ("COLUMNS" in ENVIRON) {
     Width = ENVIRON["COLUMNS"]
@@ -153,16 +165,17 @@ BEGIN {
     if ( (frame % 100) == 0 ) Iter += 8
 
     # zoom in 1/100 every frame
-    ZoomSpeed = (MaxIm-MinIm)/100
-    MinIm += ZoomSpeed; MaxIm -= ZoomSpeed
-    MinRe += ZoomSpeed; MaxRe -= ZoomSpeed
+    ZoomSpeedX = (MaxIm-MinIm)/100
+    MinIm += ZoomSpeedX; MaxIm -= ZoomSpeedX
+    ZoomSpeedY = (MaxRe-MinRe)/100
+    MinRe += ZoomSpeedY; MaxRe -= ZoomSpeedY
 
     StepX = (MaxRe-MinRe)/XSize
     StepY = (MaxIm-MinIm)/YSize
 
     # Draw status bar and new frame
-    if (StatusBar == 1) printf("\033[Hsize:%dx%d frame:%d/%d iter:%d %s\033[K\n", XSize, YSize, frame, nrFrames, Iter, FPS)
-    else printf("\033[H")
+    printf("\033[H")
+    if (StatusBar) printf("size:%dx%d frame:%d/%d iter:%d %s\033[K\n", XSize, YSize, frame, nrFrames, Iter, FPS)
 
     drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter)
 
