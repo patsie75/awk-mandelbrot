@@ -22,7 +22,7 @@ Not all environments export the `COLUMNS` and `LINES` variables, so you may want
 Run a preset 'profile 1' animation  
 `./mandelbrot.awk -v profile=1`
 
-Run a preset 'profile 2' animation with custom colormap #2
+Run a preset 'profile 2' animation with custom colormap #2  
 `./mandelbrot.awk -v profile=2 -v cmap=2`
 
 Run preset profile 3 with 100 frames and an aspect ratio of 1:1  
