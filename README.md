@@ -9,6 +9,12 @@ Last but not least I made the sizing somewhat more flexible, by auto-detecting t
 
 There are some other minor improvements like buffering the output screen to reduce flickering, having a status bar with FPS in the top line and having a variable drawing distance.
 
+A recently added feature is having a configurable colormap with choice from 256-colors. There are currently five colormaps to choose from (of which the first is just the old 8-color)  
+You can choose them with the option `-v cmap=<#>`.  
+If you want to add your own colormap, you can find the color/number overview here: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit  
+Just add a `colorstr[#]="1 2 3 4 5"` style string in the `BEGIN` section of the script. Or better yet, add it and make me a pull-request so others can enjoy your work :)
+
+
 Example usage:  
 Not all environments export the `COLUMNS` and `LINES` variables, so you may want to start off with:  
 `export COLUMNS LINES`
@@ -16,14 +22,17 @@ Not all environments export the `COLUMNS` and `LINES` variables, so you may want
 Run a preset 'profile 1' animation  
 `./mandelbrot.awk -v profile=1`
 
-Run preset profile 2 with 100 frames and an aspect ratio of 1:1  
-`./mandelbrot.awk -v profile=2 -v nframes=100 -v ratio=1:1`
+Run a preset 'profile 2' animation with custom colormap #2
+`./mandelbrot.awk -v profile=2 -v cmap=2`
+
+Run preset profile 3 with 100 frames and an aspect ratio of 1:1  
+`./mandelbrot.awk -v profile=3 -v nframes=100 -v ratio=1:1`
 
 Draw a single frame with drawing distance of 256 without status bar and draw line-by-line  
 `./mandelbrot.awk -v nframes=1 -v iter=256 -v statusbar=off -v vsync=off`
 
 Here's a (static) picture of the result:
-![Mandelbrot image](/mandelbrot.jpg)
+![Mandelbrot image](/mandelbrot.png)
 
 And a link to a moving version: [Mandelbrot movie](https://www.youtube.com/watch?v=yvru2ZmiAxM)
 

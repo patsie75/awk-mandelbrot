@@ -22,7 +22,7 @@ function drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter,    x, y, Line
   Screen = ""                 # Clear screen buffer
 
   for (y=0; y<YSize; y++) {    # For each line
-    #pix = (y>=(YSize/2))?"▄":" "
+    #pix = (y>=(YSize/2)) ? "▀" : " "
 
     Line = ""                 # Clear line buffer
     ColUp = ColDn = 0         # Blank pixel color
@@ -34,13 +34,20 @@ function drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter,    x, y, Line
     for (x=0; x<XSize; x++) { # For each pixel on lines
       Zr = Re = MinRe + StepX * x
 
-      ColUp = (Pixel(Zr, ZiUp, ImUp, Re, Iter)%8)+40 # Upper pixel color
-      ColDn = (Pixel(Zr, ZiDn, ImDn, Re, Iter)%8)+30 # Lower pixel color
+      if (nrcolors) {
+        # custom colormap from 256 colors
+        ColUp = (Pixel(Zr, ZiUp, ImUp, Re, Iter)%nrcolors)+1 # Upper pixel color
+        ColDn = (Pixel(Zr, ZiDn, ImDn, Re, Iter)%nrcolors)+1 # Lower pixel color
+      } else {
+        # old 8 colors
+        ColUp = (Pixel(Zr, ZiUp, ImUp, Re, Iter)%8)+30 # Upper pixel color
+        ColDn = (Pixel(Zr, ZiDn, ImDn, Re, Iter)%8)+40 # Lower pixel color
+      }
 
       # Are pixels different from last time
       if ( (PrevColUp != ColUp) || (PrevColDn != ColDn) ) {
         # Add new color information
-        Line = Line "\033["ColUp";"ColDn"m"
+        Line = nrcolors ? Line "\033[38;5;"colormap[ColUp]";48;5;"colormap[ColDn]"m" : Line "\033["ColUp";"ColDn"m"
         PrevColUp = ColUp
         PrevColDn = ColDn
       }
@@ -57,8 +64,8 @@ function drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter,    x, y, Line
 
 function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
   # Set defaults for all profile
-  pix       = "▄"
-  Iter      = 32
+  pix       = "▀"
+  Iter      = nrcolors ? (nrcolors * 3) : 32
   nrFrames  = 150
   MinIm = -2; MaxIm = 2
   MinRe = -2; MaxRe = 2
@@ -69,7 +76,7 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
 
   switch(profile) {
     case 0:
-      Iter = 256
+      Iter = nrcolors ? (nrcolors * 16) : 256
       nrFrames = 1
       VSync = 0
       break;
@@ -88,7 +95,7 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
 
     case 3:
       nrFrames = 400
-      Iter     = 64
+      Iter = nrcolors ? (nrcolors * 4) : 64
       MinIm = -1.990; MaxIm = 2.010
       MinRe = -1.720; MaxRe = 2.280
       break;
@@ -136,6 +143,13 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
 }
 
 BEGIN {
+  # for color codes, see: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+  colorstr[1]="0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7"
+  colorstr[2]="16 52 88 124 160 196 202 208 214 220 226 226 228 229 230 231 225 219 213 207 201 165 129 93 57 21 27 33 39 45 51 50 49 48 47 46 40 34 28 22"
+  colorstr[3]="16,17,18,19,20,21, 57, 93, 129, 165, 201 200 199 198 197 196 160 124 88 52"
+  colorstr[4]="232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255"
+  colorstr[5]="16 52 88 124 160 196 166 136 106 76 46 41 36 31 26 21"
+
   negative["off"] = 1
   negative["false"] = 1
   negative["no"] = 1
@@ -145,8 +159,14 @@ BEGIN {
     Width = ENVIRON["COLUMNS"]
     Height = ENVIRON["LINES"]
   } else {
-    Width = 80; Height = 24
+    "tput cols"  | getline Width
+    "tput lines" | getline Height
   }
+  if ( !(Width && Height) ) { Width = 80; Height = 24 }
+
+  # Set colormap (-v cmap=<value>)
+  if (cmap in colorstr)
+    nrcolors = split(colorstr[cmap], colormap, /[, ]+/)
 
   # select profile to show
   Profile(profile?profile:0, pixel, iter, vsync, statusbar, nframes, ratio)
@@ -162,7 +182,7 @@ BEGIN {
   # start drawing frames
   for (frame=1; frame<=nrFrames; frame++) {
     # show more detail every 100 frames
-    if ( (frame % 100) == 0 ) Iter += 8
+    if ( (frame % 100) == 0 ) Iter += nrcolors ? nrcolors : 8
 
     # zoom in 1/100 every frame
     ZoomSpeedX = (MaxIm-MinIm)/100
