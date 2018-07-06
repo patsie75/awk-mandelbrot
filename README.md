@@ -9,11 +9,12 @@ Last but not least I made the sizing somewhat more flexible, by auto-detecting t
 
 There are some other minor improvements like buffering the output screen to reduce flickering, having a status bar with FPS in the top line and having a variable drawing distance.
 
-A recently added feature is having a configurable colormap with choice from 256-colors. There are currently five colormaps to choose from (of which the first is just the old 8-color)  
+A recently added feature is having a configurable colormap with choice from 256-colors. There are currently six colormaps to choose from (of which the first is just the old 8-color)  
 You can choose them with the option `-v cmap=<#>`.  
 If you want to add your own colormap, you can find the color/number overview here: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit  
 Just add a `colorstr[#]="1 2 3 4 5"` style string in the `BEGIN` section of the script. Or better yet, add it and make me a pull-request so others can enjoy your work :)
 
+This program leans heavily on CPU computation and although I initially wrote this for gawk, it's really slow compared to mawk. So if you have a choice, run this with mawk and enjoy the 50% speed gain. `mawk -f ./mandelbrot.awk`  
 
 Example usage:  
 Not all environments export the `COLUMNS` and `LINES` variables, so you may want to start off with:  
