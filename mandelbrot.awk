@@ -1,4 +1,4 @@
-#!/usr/bin/gawk -f
+#!/usr/bin/awk -f
 
 function MyTime() {
   # /proc/uptime has more precision than strftime()
@@ -74,51 +74,43 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
   VSync     = 1
   StatusBar = 1
 
-  switch(profile) {
-    case 0:
+  if (profile == 0) {
       Iter = nrcolors ? (nrcolors * 16) : 256
       nrFrames = 1
       VSync = 0
-      break;
-
-    case 1:
+  }
+  if (profile == 1) {
       nrFrames = 400
       MinIm = -2.000; MaxIm = 2.000
       MinRe = -3.450; MaxRe = 0.550
-      break;
-
-    case 2:
+  }
+  if (profile == 2) {
       nrFrames = 400
       MinIm = -2.900; MaxIm = 1.100
       MinRe = -2.057; MaxRe = 1.943
-      break;
-
-    case 3:
+  }
+  if (profile == 3) {
       nrFrames = 400
       Iter = nrcolors ? (nrcolors * 4) : 64
       MinIm = -1.990; MaxIm = 2.010
       MinRe = -1.720; MaxRe = 2.280
-      break;
-
-    case 4:
+  }
+  if (profile == 4) {
       nrFrames = 400
       MinIm = -1.405; MaxIm = 2.595
       MinRe = -1.675; MaxRe = 2.325
-      break;
-
-    case 5:
+  }
+  if (profile == 5) {
       nrFrames  = 400
       MinIm = -2.000; MaxIm = 2.000
       MinRe = -3.781; MaxRe = 0.219
-      break;
-
-    case 6:
+  }
+  if (profile == 6) {
       nrFrames  = 400
       AspectWidth  = 2
       AspectHeight = 1
       MinIm = -1.000; MaxIm = 1.000
       MinRe = -3.781; MaxRe = 0.219
-      break;
   }
 
   if (pixel) pix = pixel
@@ -126,9 +118,9 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
   if (vsync) VSync = (vsync in negative)?0:1
   if (statusbar) StatusBar = (statusbar in negative)?0:1
   if (nframes) nrFrames  = nframes
-  if (ratio && match(ratio, /([[:digit:]]+):([[:digit:]]+)/, AspectRatio)) {
-    AspectWidth  = AspectRatio[1]?AspectRatio[1]:1
-    AspectHeight = AspectRatio[2]?AspectRatio[2]:1
+  if (ratio && (split(ratio, AspectRatio, ":") == 2) ) {
+    AspectWidth  = int(AspectRatio[1]+0) ? AspectRatio[1] : 1
+    AspectHeight = int(AspectRatio[2]+0) ? AspectRatio[2] : 1
   }
 
   # find best aspect ratio
@@ -147,8 +139,9 @@ BEGIN {
   colorstr[1]="0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7"
   colorstr[2]="16 52 88 124 160 196 202 208 214 220 226 226 228 229 230 231 225 219 213 207 201 165 129 93 57 21 27 33 39 45 51 50 49 48 47 46 40 34 28 22"
   colorstr[3]="16,17,18,19,20,21, 57, 93, 129, 165, 201 200 199 198 197 196 160 124 88 52"
-  colorstr[4]="232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255"
+  colorstr[4]="16,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,231"
   colorstr[5]="16 52 88 124 160 196 166 136 106 76 46 41 36 31 26 21"
+  colorstr[6]="16 17 18 19 20 21 57 93 129 165 201 200 199 198 197 196 202 208 214 220 226 190 154 118 82 46 47 48 49 50 51 87 123 159 195 231"
 
   negative["off"] = 1
   negative["false"] = 1
@@ -175,6 +168,8 @@ BEGIN {
   FPS = "0.00"
   FrameCnt = 0
   TimeStart = TimeThen = TimeNow = MyTime()
+  StartWidth = MaxIm-MinIm
+  StartHeight = MaxRe-MinRe
 
   # hide cursor
   printf("\033[?25l")
@@ -186,16 +181,19 @@ BEGIN {
 
     # zoom in 1/100 every frame
     ZoomSpeedX = (MaxIm-MinIm)/100
-    MinIm += ZoomSpeedX; MaxIm -= ZoomSpeedX
     ZoomSpeedY = (MaxRe-MinRe)/100
+    MinIm += ZoomSpeedX; MaxIm -= ZoomSpeedX
     MinRe += ZoomSpeedY; MaxRe -= ZoomSpeedY
+
+    ZoomFactorX = sprintf("%.1f", StartWidth/(MaxIm-MinIm))
+    ZoomFactorY = sprintf("%.1f", StartHeight/(MaxRe-MinRe))
 
     StepX = (MaxRe-MinRe)/XSize
     StepY = (MaxIm-MinIm)/YSize
 
     # Draw status bar and new frame
     printf("\033[H")
-    if (StatusBar) printf("size:%dx%d frame:%d/%d iter:%d %s\033[K\n", XSize, YSize, frame, nrFrames, Iter, FPS)
+    if (StatusBar) printf("size:%dx%d frame:%d/%d iter:%d zoom:%sx %s\033[K\n", XSize, YSize*2, frame, nrFrames, Iter, ZoomFactorX, FPS)
 
     drawFrame(XSize, YSize, StepX, StepY, MinIm, MinRe, Iter)
 
