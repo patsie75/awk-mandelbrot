@@ -112,6 +112,20 @@ function Profile(profile, pixel, iter, vsync, statusbar, nframes, ratio) {
       MinIm = -1.000; MaxIm = 1.000
       MinRe = -3.781; MaxRe = 0.219
   }
+  if (profile == 7) {
+      nrFrames  = 400
+      AspectWidth  = 2
+      AspectHeight = 1
+      MinIm = -1.900; MaxIm = 0.100
+      MinRe = -2.152; MaxRe = 1.848
+  }
+  if (profile == 8) {
+      nrFrames  = 400
+      AspectWidth  = 2
+      AspectHeight = 1
+      MinIm = -2.040; MaxIm = -0.040
+      MinRe = -2.153; MaxRe = 1.847
+  }
 
   if (pixel) pix = pixel
   if (iter) Iter = iter
