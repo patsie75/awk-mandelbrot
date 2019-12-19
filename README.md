@@ -35,5 +35,5 @@ Draw a single frame with drawing distance of 256 without status bar and draw lin
 Here's a (static) picture of the result:
 ![Mandelbrot image](/mandelbrot.png)
 
-And a link to a moving version: [Mandelbrot movie](https://www.youtube.com/watch?v=yvru2ZmiAxM)
+And a link to a moving version: [Mandelbrot movie](https://youtu.be/sndnk6BfPPs)
 
